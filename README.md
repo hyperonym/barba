@@ -13,13 +13,13 @@ Docker images are available on [Docker Hub](https://hub.docker.com/r/hyperonym/b
 Starting a CPU-only container:
 
 ```bash
-docker run -d -p 8501:8501 hyperonym/barba:0.1.0
+docker run -d -p 8501:8501 hyperonym/barba:0.2.0
 ```
 
 Starting a GPU enabled container:
 
 ```bash
-docker run --gpus all -d -p 8501:8501 hyperonym/barba:0.1.0
+docker run --gpus all -d -p 8501:8501 hyperonym/barba:0.2.0
 ```
 
 #### Natural Language Inference
