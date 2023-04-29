@@ -1,0 +1,6 @@
+datasets~=2.11.0
+huggingface-hub~=0.14.0
+tensorflow-serving-api~=2.11.1
+tensorflow-text~=2.11.0
+tensorflow~=2.11.1
+transformers[sentencepiece]~=4.28.1
