@@ -1,6 +1,6 @@
 # Barba
 
-Barba is a multilingual model for [Natural Language Inference](https://paperswithcode.com/task/natural-language-inference) (NLI) and [zero-shot text classification](https://joeddav.github.io/blog/2020/05/29/ZSL.html#Classification-as-Natural-Language-Inference), available as an end-to-end service through TensorFlow Serving. It is based on [XLM-RoBERTa](https://arxiv.org/abs/1911.02116), and is trained on selected subsets of [SNLI](https://nlp.stanford.edu/projects/snli/), [XNLI](https://github.com/facebookresearch/XNLI), [MultiNLI](https://cims.nyu.edu/~sbowman/multinli/), [OCNLI](https://github.com/CLUEbenchmark/OCNLI), [ANLI](https://github.com/facebookresearch/anli), and other private datasets.
+Barba is a multilingual [natural language inference](http://nlpprogress.com/english/natural_language_inference.html) model for [textual entailment](https://en.wikipedia.org/wiki/Textual_entailment) and [zero-shot text classification](https://joeddav.github.io/blog/2020/05/29/ZSL.html#Classification-as-Natural-Language-Inference), available as an end-to-end service through TensorFlow Serving. Based on [XLM-RoBERTa](https://arxiv.org/abs/1911.02116), it is trained on selected subsets of publicly available English ([GLUE](https://huggingface.co/datasets/glue)), Chinese ([CLUE](https://huggingface.co/datasets/clue)), Japanese ([JGLUE](https://huggingface.co/datasets/shunk031/JGLUE)), Korean ([KLUE](https://huggingface.co/datasets/klue)) datasets, as well as other private datasets.
 
 ## Quick Start
 
@@ -8,21 +8,17 @@ Barba is a multilingual model for [Natural Language Inference](https://paperswit
 
 Docker images are available on [Docker Hub](https://hub.docker.com/r/hyperonym/barba/tags) and [GitHub Packages](https://github.com/orgs/hyperonym/packages?repo_name=barba).
 
+For GPU acceleration, you also need to install the [NVIDIA Driver](https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html) and [NVIDIA Container Runtime](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html). Barba's image already comes with related libraries such as CUDA and cuDNN, so there is no need to install them manually.
+
 ### Basic Usage
 
-Starting a CPU-only container:
+Replace `X.Y.Z` with the [latest version](https://hub.docker.com/r/hyperonym/barba/tags), then run:
 
 ```bash
-docker run -d -p 8501:8501 hyperonym/barba:0.2.0
+docker run -p 8501:8501 hyperonym/barba:X.Y.Z
 ```
 
-Starting a GPU enabled container:
-
-```bash
-docker run --gpus all -d -p 8501:8501 hyperonym/barba:0.2.0
-```
-
-#### Natural Language Inference
+#### Textual Entailment
 
 ```bash
 curl -X POST \
