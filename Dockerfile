@@ -1,4 +1,4 @@
-FROM tensorflow/serving:2.11.0-gpu
+FROM tensorflow/serving:2.11.1-gpu
 
 # Copy artifacts to the container
 COPY servables/barba /models/barba
