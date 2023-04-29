@@ -1,52 +1,37 @@
 """
-Use this script to export a servable Hyperonym Barba model
-for end-to-end serving and containerized deployment.
+Export servable model for end-to-end serving and containerized deployment.
 """
 import os
-import tempfile
+import sys
 
 import tensorflow as tf
 import tensorflow_text as tf_text
-from huggingface_hub import hf_hub_download
-from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_log_pb2
+from tensorflow_serving.apis import predict_pb2, prediction_log_pb2
 
-# Download tokenizer model.
-with tempfile.TemporaryDirectory() as cache_dir:
-    hf_hub_download(
-        repo_id="xlm-roberta-large",
-        filename="sentencepiece.bpe.model",
-        cache_dir=cache_dir,
-        local_dir="models/",
-        local_dir_use_symlinks=False,
-    )
-with open("models/sentencepiece.bpe.model", mode="rb") as file:
-    tokenizer_model = file.read()
-
-# Create SentencePiece tokenizer.
-tokenizer = tf_text.SentencepieceTokenizer(
-    model=tokenizer_model,
-    out_type=tf.int32,
-    nbest_size=0,
-    alpha=1.0,
-    reverse=False,
-    add_bos=False,
-    add_eos=False,
-    return_nbest=False,
-    name=None,
-)
-
-# Load the fine-tuned model.
-model = tf.saved_model.load("models/barba")
+if len(sys.argv) < 3:
+    sys.exit("usage: python export.py LOCAL_DIR EXPORT_DIR")
 
 
 class Servable(tf.keras.Model):
     """Servable model for end-to-end serving and containerized deployment."""
 
-    def __init__(self):
+    def __init__(self, local_dir):
         super().__init__()
+        path = os.path.join(local_dir, "sentencepiece.bpe.model")
+        with open(path, mode="rb") as file:
+            tokenizer = tf_text.SentencepieceTokenizer(
+                model=file.read(),
+                out_type=tf.int32,
+                nbest_size=0,
+                alpha=1.0,
+                reverse=False,
+                add_bos=False,
+                add_eos=False,
+                return_nbest=False,
+                name=None,
+            )
         self.tokenizer = tokenizer
-        self.model = model
+        self.model = tf.saved_model.load(local_dir)
 
     def tokenize(self, inputs):
         ids = self.tokenizer.tokenize(inputs) + 1
@@ -86,7 +71,7 @@ class Servable(tf.keras.Model):
 
 
 # Build servable model.
-servable = Servable()
+servable = Servable(sys.argv[1])
 signatures = dict()
 
 
@@ -125,10 +110,9 @@ def cartesian(inputs):
 
 signatures["cartesian"] = cartesian
 
-# Save the servable model and create the assets.extra directory.
-save_dir = "servables/barba/1"
-tf.saved_model.save(servable, save_dir, signatures=signatures)
-extra_dir = os.path.join(save_dir, "assets.extra")
+# Save the servable model.
+tf.saved_model.save(servable, sys.argv[2], signatures=signatures)
+extra_dir = os.path.join(sys.argv[2], "assets.extra")
 os.makedirs(extra_dir, exist_ok=True)
 
 # Prepare warmup requests.
@@ -143,11 +127,10 @@ hypotheses = tf.constant(
 )
 premises = tf.constant(
     [
-        "A robot may not injure a human being or, through inaction, "
-        "allow a human being to come to harm",
-        "机器人不得伤害人类，或坐视人类受到伤害",
-        "ロボットは人を傷つけたり、人に危害を加えたりしてはならない",
-        "로봇은 인간을 다치게 하거나 인간이 해를 입도록 허용해서는 안 됩니다",
+        "A robot may not injure a human being or, through inaction, allow a human being to come to harm.",  # noqa: E501
+        "机器人不得伤害人类，或坐视人类受到伤害。",  # noqa: E501
+        "ロボットは人間に危害を加えてはならない。また、その危険を看過することによって、人間に危害を及ぼしてはならない。",  # noqa: E501
+        "로봇은 인간에 해를 가하거나, 혹은 행동을 하지 않음으로써 인간에게 해가 가도록 해서는 안 된다.",  # noqa: E501
     ],
     dtype=tf.string,
 )
@@ -165,7 +148,7 @@ with tf.io.TFRecordWriter(warmup_record_path) as writer:
     log = prediction_log_pb2.PredictionLog(predict_log=predict_log)
     writer.write(log.SerializeToString())
 
-# Embed batching parameters.
+# Write batching parameters.
 batching_parameters_path = os.path.join(extra_dir, "batching_parameters.pbtxt")
 with open(batching_parameters_path, "w") as file:
     file.write("max_batch_size { value: 32 }\n")
