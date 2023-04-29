@@ -9,11 +9,6 @@ GITHUB_PACKAGES_IMAGE := ghcr.io/$(GITHUB_PACKAGES_OWNER)/$(NAME):$(VERSION)
 
 TARGET_CONTAINER_PLATFORMS := linux/amd64
 
-.PHONY: build
-build:
-	@python download.py hyperonym/barba models/barba
-	@python export.py models/barba servables/barba/1
-
 .PHONY: changelog
 changelog:
 	@mkdir -p dist
@@ -23,7 +18,7 @@ changelog:
 .PHONY: clean
 clean:
 	@find . -type f -name "*.py[co]" -delete && find . -type d -name "__pycache__" -delete
-	@rm -rf .coverage .pytest_cache/ *.egg-info/ build/ dist/ htmlcov/ servables/
+	@rm -rf .coverage .pytest_cache/ *.egg-info/ build/ dist/ htmlcov/
 
 .PHONY: docker
 docker:
