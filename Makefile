@@ -11,8 +11,8 @@ TARGET_CONTAINER_PLATFORMS := linux/amd64
 
 .PHONY: build
 build:
-	@python convert.py hyperonym/barba models/barba
-	@python export.py
+	@python download.py hyperonym/barba models/barba
+	@python export.py models/barba servables/barba/1
 
 .PHONY: changelog
 changelog:
